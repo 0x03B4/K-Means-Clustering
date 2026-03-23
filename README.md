@@ -5,6 +5,7 @@
 ├── LICENSE
 ├── pyproject.toml
 ├── README.md
+├── requirements.txt
 ├── src
 │   ├── kmeans.py
 │   ├── lab 2.pdf
