@@ -1,20 +1,19 @@
 # Hard-to-count dense K-Means clustered network with centroids
 # Goal: make visual counting difficult so students must use code to answer questions
 
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
-
-from sklearn.cluster import KMeans
+import numpy as np
+import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+from sklearn.cluster import KMeans
 
 np.random.seed(42)
 
 # -------------------------------------------------
 # 1. Create a very dense graph with 600 nodes
 # -------------------------------------------------
-sizes = [85, 95, 80, 90, 75, 90, 85]   # total = 600
+sizes = [85, 95, 80, 90, 75, 90, 85]  # total = 600
 
 p_in = [0.30, 0.28, 0.32, 0.29, 0.31, 0.27, 0.30]
 p_out = 0.05
@@ -40,15 +39,17 @@ xy[:, 0] = (xy[:, 0] - xy[:, 0].min()) / (xy[:, 0].max() - xy[:, 0].min())
 xy[:, 1] = (xy[:, 1] - xy[:, 1].min()) / (xy[:, 1].max() - xy[:, 1].min())
 
 # Manually compress communities closer together to make counting harder
-community_centers = np.array([
-    [0.25, 0.45],
-    [0.38, 0.68],
-    [0.52, 0.74],
-    [0.68, 0.55],
-    [0.68, 0.28],
-    [0.48, 0.20],
-    [0.22, 0.22]
-])
+community_centers = np.array(
+    [
+        [0.25, 0.45],
+        [0.38, 0.68],
+        [0.52, 0.74],
+        [0.68, 0.55],
+        [0.68, 0.28],
+        [0.48, 0.20],
+        [0.22, 0.22],
+    ]
+)
 
 membership = []
 for block_id, sz in enumerate(sizes):
@@ -83,17 +84,12 @@ y = new_xy[:, 1] * 100
 # -------------------------------------------------
 energy = np.random.randint(10, 101, size=len(nodes))
 
-df = pd.DataFrame({
-    "Node": [f"N{n}" for n in nodes],
-    "X": x,
-    "Y": y,
-    "Energy": energy
-})
+df = pd.DataFrame({"Node": [f"N{n}" for n in nodes], "X": x, "Y": y, "Energy": energy})
 
 # -------------------------------------------------
 # 4. KMeans clustering on node positions
 # -------------------------------------------------
-k = 7
+k = 3
 kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
 df["Cluster"] = kmeans.fit_predict(df[["X", "Y"]])
 centroids = kmeans.cluster_centers_
@@ -124,13 +120,7 @@ plt.figure(figsize=(12, 12), facecolor="#efefef")
 ax = plt.gca()
 ax.set_facecolor("#efefef")
 
-nx.draw_networkx_edges(
-    G2,
-    pos=coord_map,
-    edge_color="black",
-    width=0.35,
-    alpha=0.10
-)
+nx.draw_networkx_edges(G2, pos=coord_map, edge_color="black", width=0.35, alpha=0.10)
 
 for cluster_id in sorted(df["Cluster"].unique()):
     cluster_nodes = df[df["Cluster"] == cluster_id]["Node"].tolist()
@@ -142,7 +132,7 @@ for cluster_id in sorted(df["Cluster"].unique()):
         node_size=95,
         alpha=0.82,
         linewidths=0.25,
-        edgecolors="white"
+        edgecolors="white",
     )
 
 plt.scatter(
@@ -152,14 +142,13 @@ plt.scatter(
     c="black",
     marker="X",
     linewidths=1.5,
-    label="Centroids"
+    label="Centroids",
 )
 
 plt.title("Dense K-Means Clustered Network with Centroids", fontsize=15)
 plt.axis("off")
 plt.legend()
 plt.show()
-
 
 
 # -------------------------------------------------
@@ -171,10 +160,12 @@ ax = fig.add_subplot(111, projection="3d")
 for cluster_id in sorted(df["Cluster"].unique()):
     cdf = df[df["Cluster"] == cluster_id]
     ax.scatter(
-        cdf["X"], cdf["Y"], cdf["Energy"],
+        cdf["X"],
+        cdf["Y"],
+        cdf["Energy"],
         s=12,
         alpha=0.85,
-        label=f"Cluster {cluster_id}"
+        label=f"Cluster {cluster_id}",
     )
 
 centroid_energy = []
@@ -188,7 +179,7 @@ ax.scatter(
     s=250,
     c="black",
     marker="X",
-    label="Centroids"
+    label="Centroids",
 )
 
 ax.set_title("3D Clustered Network with Node Energy")
@@ -198,8 +189,8 @@ ax.set_zlabel("Energy")
 ax.legend()
 plt.show()
 
-from scipy.interpolate import griddata
 import matplotlib.cm as cm
+from scipy.interpolate import griddata
 
 # -----------------------------
 # 9. Smooth 3D surface plot (improved)
@@ -210,7 +201,7 @@ ax = fig.add_subplot(111, projection="3d")
 # Create grid for smooth interpolation
 grid_x, grid_y = np.meshgrid(
     np.linspace(df["X"].min(), df["X"].max(), 150),
-    np.linspace(df["Y"].min(), df["Y"].max(), 150)
+    np.linspace(df["Y"].min(), df["Y"].max(), 150),
 )
 
 # Interpolate energy values onto grid
@@ -218,7 +209,7 @@ grid_z = griddata(
     (df["X"], df["Y"]),
     df["Energy"],
     (grid_x, grid_y),
-    method='cubic'  # smooth interpolation
+    method="cubic",  # smooth interpolation
 )
 
 # Plot smooth surface with colormap
@@ -226,21 +217,17 @@ surf = ax.plot_surface(
     grid_x,
     grid_y,
     grid_z,
-    cmap=cm.viridis,   # smooth color gradient
+    cmap=cm.viridis,  # smooth color gradient
     linewidth=0,
     antialiased=True,
-    alpha=0.85
+    alpha=0.85,
 )
 
 # Add color bar (VERY important for interpretation)
 fig.colorbar(surf, ax=ax, shrink=0.6, aspect=12, label="Energy Level")
 
 # Overlay actual nodes (small)
-ax.scatter(
-    df["X"], df["Y"], df["Energy"],
-    s=5,
-    alpha=0.4
-)
+ax.scatter(df["X"], df["Y"], df["Energy"], s=5, alpha=0.4)
 
 # Overlay centroids
 ax.scatter(
@@ -250,7 +237,7 @@ ax.scatter(
     s=250,
     c="red",
     marker="X",
-    label="Centroids"
+    label="Centroids",
 )
 
 ax.set_title("Smooth 3D Energy Surface with K-Means Clusters")
