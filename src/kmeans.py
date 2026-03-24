@@ -247,3 +247,14 @@ ax.set_zlabel("Energy")
 ax.legend()
 
 plt.show()
+
+
+# My code
+
+print("--Cluster Node Counts--")
+print(df["Cluster"].value_counts())
+
+min_energy_node = df.loc[df["Energy"].idxmin()]
+print("\n")
+print("--Node with Lowest Energy--")
+print(min_energy_node)
